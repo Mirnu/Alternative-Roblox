@@ -1,19 +1,9 @@
-import { Components } from "@flamework/components";
 import { Controller, OnStart, OnInit, Dependency } from "@flamework/core";
 import { Workspace } from "@rbxts/services";
 import { LocalPlayer } from "client/LocalPlayer";
-import { Events } from "client/network";
-import { AlternativeComponent } from "shared/components/Alternatives/AlternativeComponent";
+import { MainMenuComponent } from "client/components/UI/MainMenuComponent";
 
 const regen = 0.5;
-
-const components = Dependency<Components>();
-
-const GetAlternativeComponent = (instance: Instance): AlternativeComponent | undefined => {
-    const allComponents = components.getComponents(instance, AlternativeComponent);
-
-    return allComponents.pop();
-};
 
 @Controller({})
 export class CameraController implements OnStart, OnInit {
@@ -43,9 +33,13 @@ export class CameraController implements OnStart, OnInit {
                 this.Move(this.mouse);
             }
         });
+
+        MainMenuComponent.GameStarted.Connect(() => {
+            this.SetCameraPosition();
+        });
     }
 
-    public SetCameraPosition() {
+    private async SetCameraPosition() {
         if (this.camera) {
             this.camera.CFrame = this.baseCameraPos.CFrame;
             this.GameInited = true;

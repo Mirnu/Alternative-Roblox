@@ -1,10 +1,18 @@
 import { Networking } from "@flamework/networking";
 
-interface ClientToServerEvents {}
+interface ClientToServerEvents {
+    EyeClosed(): void;
+    EyeOpened(): void;
+    RayProcces(object: Instance | undefined): void;
+}
 
-interface ServerToClientEvents {}
+interface ServerToClientEvents {
+    GameInited(): void;
+}
 
-interface ClientToServerFunctions {}
+interface ClientToServerFunctions {
+    GameStarted(): boolean;
+}
 
 interface ServerToClientFunctions {}
 
