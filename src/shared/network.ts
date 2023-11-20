@@ -11,7 +11,7 @@ interface ServerToClientEvents {
 }
 
 interface ClientToServerFunctions {
-    GameStarted(): boolean;
+    GameStarted(level: number): boolean;
 }
 
 interface ServerToClientFunctions {}

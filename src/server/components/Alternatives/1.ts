@@ -11,5 +11,8 @@ export class Alternative1 extends AlternativeComponent implements OnStart {
         this.damage = damage;
     }
 
-    onStart() {}
+    onStart() {
+        task.wait(5);
+        print(damage);
+    }
 }

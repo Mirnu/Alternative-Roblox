@@ -10,7 +10,6 @@ export class LevelService implements OnStart, OnInit {
 
     private NewLevel(): boolean {
         this.GameStarted.Fire(1);
-        print(1);
         return true;
     }
 

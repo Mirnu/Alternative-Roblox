@@ -1,8 +1,8 @@
 import { Components } from "@flamework/components";
-import { Service, OnStart, Dependency } from "@flamework/core";
+import { Service, OnStart } from "@flamework/core";
 import { PlayerComponent } from "server/components/PlayerComponent";
 import { Events } from "server/network";
-import { AlternativeComponent } from "shared/components/Alternatives/AlternativeComponent";
+import { AlternativeComponent } from "server/components/Alternatives/AlternativeComponent";
 
 const regen = 0.5;
 
@@ -10,11 +10,20 @@ const regen = 0.5;
 export class AlternativeService implements OnStart {
     constructor(private components: Components) {}
 
+    private getAlternativeComponents(object: Instance) {
+        const alternativeComponents = this.components.getComponents(object, AlternativeComponent);
+
+        return alternativeComponents[0];
+    }
+
     onStart() {
+        this.Init();
+    }
+
+    private Init() {
         Events.RayProcces.connect((player, object) => {
             if (object) {
-                const alternativeComponent = this.components.getComponent(object, AlternativeComponent);
-                print(alternativeComponent);
+                const alternativeComponent = this.getAlternativeComponents(object);
                 if (alternativeComponent !== undefined && alternativeComponent.damage) {
                     this.AlternativeDetection(player, alternativeComponent.damage);
                 }
