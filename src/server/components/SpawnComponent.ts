@@ -1,8 +1,9 @@
 import { OnStart } from "@flamework/core";
 import { Component, BaseComponent, Components } from "@flamework/components";
 import { LevelService } from "server/services/LevelService";
-import { Prefabs, mapGame } from "shared/Abbreviations/Map";
+import { mapGame } from "shared/Abbreviations/Map";
 import { Alternative1 } from "shared/components/Alternatives/1";
+import { ReplicatedStorage } from "@rbxts/services";
 
 interface Attributes {}
 
@@ -13,6 +14,7 @@ type level = 1;
 })
 export class SpawnComponent extends BaseComponent<Attributes, BasePart> implements OnStart {
     private alternative?: BasePart;
+
     constructor(private levelService: LevelService, private components: Components) {
         super();
     }
@@ -22,7 +24,7 @@ export class SpawnComponent extends BaseComponent<Attributes, BasePart> implemen
     }
 
     private GameStart(level: level) {
-        this.alternative = Prefabs.Alternatives[level].Clone();
+        this.alternative = ReplicatedStorage.Prefabs.Alternatives[level].Clone();
         this.alternative.Parent = mapGame.Alternative;
         this.alternative.CFrame = this.instance.CFrame;
         this.components.addComponent<Alternative1>(this.alternative);

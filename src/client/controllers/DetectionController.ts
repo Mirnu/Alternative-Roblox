@@ -46,6 +46,6 @@ export class DetectionController implements OnStart {
     }
 
     public RayProcess(object?: Instance) {
-        // Events.RayProcces.fire(object);
+        Events.RayProcces.fire(object);
     }
 }

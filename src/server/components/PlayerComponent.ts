@@ -5,6 +5,7 @@ import { Replica, ReplicaService } from "@rbxts/replicaservice";
 interface Attributes {}
 
 const EyeDamage = -0.2;
+const classToken = ReplicaService.NewClassToken("Mental");
 
 @Component({})
 export class PlayerComponent extends BaseComponent<Attributes, Player> implements OnStart {
@@ -13,7 +14,7 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
 
     onStart() {
         this.MentalReplica = ReplicaService.NewReplica({
-            ClassToken: ReplicaService.NewClassToken("Mental"),
+            ClassToken: classToken,
             Data: {
                 Mental: 100,
             },

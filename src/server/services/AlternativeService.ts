@@ -13,27 +13,19 @@ export class AlternativeService implements OnStart {
     onStart() {
         Events.RayProcces.connect((player, object) => {
             if (object) {
-                const alternativeComponent: AlternativeComponent | undefined = this.components.getComponent(
-                    object,
-                    AlternativeComponent,
-                );
-
+                const alternativeComponent = this.components.getComponent(object, AlternativeComponent);
                 print(alternativeComponent);
-
                 if (alternativeComponent !== undefined && alternativeComponent.damage) {
                     this.AlternativeDetection(player, alternativeComponent.damage);
                 }
-            } else {
-                this.AlternativeDetection(player, regen);
+                return;
             }
-        });
-        Events.EyeClosed.connect((player) => {
-            this.EyeClose(player);
+
+            this.AlternativeDetection(player, regen);
         });
 
-        Events.EyeOpened.connect((player) => {
-            this.EyeOpened(player);
-        });
+        Events.EyeClosed.connect((player) => this.EyeClose(player));
+        Events.EyeOpened.connect((player) => this.EyeOpened(player));
     }
 
     private AlternativeDetection(player: Player, damage: number) {
