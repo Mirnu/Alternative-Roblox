@@ -5,6 +5,8 @@ import { MainMenuComponent } from "client/components/UI/MainMenuComponent";
 
 const regen = 0.5;
 
+const CameraRestriction = new ReadonlyMap<number, [number, number]>([[1, [170, 1]]]);
+
 @Controller({})
 export class CameraController implements OnStart, OnInit {
     private camera: Camera | undefined = Workspace.CurrentCamera;
@@ -12,6 +14,9 @@ export class CameraController implements OnStart, OnInit {
     private mouse: PlayerMouse = LocalPlayer.GetMouse();
 
     private sensitivity: number = 2;
+
+    private rightCameraRestriction!: number;
+    private leftCameraRestriction!: number;
 
     private rightBorder!: number;
     private leftBorder!: number;
@@ -34,9 +39,18 @@ export class CameraController implements OnStart, OnInit {
             }
         });
 
-        MainMenuComponent.GameStarted.Connect(() => {
+        MainMenuComponent.GameStarted.Connect((level: number) => {
             this.SetCameraPosition();
+            this.SetCameraRestriction(level);
         });
+    }
+
+    private async SetCameraRestriction(level: number) {
+        const cameraRestriction = CameraRestriction.get(level);
+        if (cameraRestriction === undefined) return;
+
+        this.rightCameraRestriction = cameraRestriction[1];
+        this.leftCameraRestriction = cameraRestriction[0];
     }
 
     private async SetCameraPosition() {
@@ -47,12 +61,20 @@ export class CameraController implements OnStart, OnInit {
     }
 
     private Move(mouse: PlayerMouse) {
-        if (this.camera && this.GameInited) {
-            if (mouse.X > this.rightBorder) {
-                this.camera.CFrame = this.camera.CFrame.mul(CFrame.Angles(0, math.rad(-this.sensitivity), 0));
-            } else if (mouse.X < this.leftBorder) {
-                this.camera.CFrame = this.camera.CFrame.mul(CFrame.Angles(0, math.rad(this.sensitivity), 0));
-            }
+        if (!this.GameInited) return;
+        if (this.camera === undefined) return;
+
+        const right =
+            mouse.X > this.rightBorder &&
+            math.deg(this.camera.CFrame.Rotation.ToOrientation()["1"]) > this.rightCameraRestriction;
+        const left =
+            mouse.X < this.leftBorder &&
+            math.deg(this.camera.CFrame.Rotation.ToOrientation()["1"]) < this.leftCameraRestriction;
+
+        if (right) {
+            this.camera.CFrame = this.camera.CFrame.mul(CFrame.Angles(0, math.rad(-this.sensitivity), 0));
+        } else if (left) {
+            this.camera.CFrame = this.camera.CFrame.mul(CFrame.Angles(0, math.rad(this.sensitivity), 0));
         }
     }
 }

@@ -8,9 +8,9 @@ export class LevelService implements OnStart, OnInit {
 
     onInit() {}
 
-    private NewLevel(): boolean {
+    private NewLevel(): number {
         this.GameStarted.Fire(1);
-        return true;
+        return 1;
     }
 
     onStart() {

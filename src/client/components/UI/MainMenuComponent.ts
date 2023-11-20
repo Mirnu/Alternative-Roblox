@@ -14,7 +14,7 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
     private Credits = this.MainMenuTexts["3"];
     private Exit = this.MainMenuTexts["4"];
 
-    public static readonly GameStarted = new Signal();
+    public static readonly GameStarted = new Signal<(level: number) => void>();
 
     private currentTween?: Tween;
 
@@ -33,10 +33,10 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
 
     private InitActivation() {
         this.NewGame.text.Activated.Connect(async () => {
-            const started = await Functions.GameStarted.invoke();
+            const level = await Functions.GameStarted.invoke();
 
-            if (started) {
-                MainMenuComponent.GameStarted.Fire();
+            if (level !== 0) {
+                MainMenuComponent.GameStarted.Fire(level);
                 this.instance.Enabled = false;
             }
         });
