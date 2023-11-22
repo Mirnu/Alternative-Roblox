@@ -1,7 +1,8 @@
 import { Controller, OnStart, OnInit, Dependency } from "@flamework/core";
+import { ReplicaController } from "@rbxts/replicaservice";
 import { Workspace } from "@rbxts/services";
 import { LocalPlayer } from "client/LocalPlayer";
-import { MainMenuComponent } from "client/components/UI/MainMenuComponent";
+import { SessionStatus } from "shared/types/SessionStatus";
 
 const regen = 0.5;
 
@@ -9,8 +10,9 @@ const CameraRestriction = new ReadonlyMap<number, [number, number]>([[1, [170, 1
 
 @Controller({})
 export class CameraController implements OnStart, OnInit {
-    private camera: Camera | undefined = Workspace.CurrentCamera;
+    private camera?: Camera = Workspace.CurrentCamera;
     private baseCameraPos = Workspace.WaitForChild("Map").WaitForChild("CamStarterPoint") as BasePart;
+    private MenuCameraPos = Workspace.WaitForChild("Menu").WaitForChild("CamStarterPoint") as BasePart;
     private mouse: PlayerMouse = LocalPlayer.GetMouse();
 
     private sensitivity: number = 2;
@@ -32,20 +34,29 @@ export class CameraController implements OnStart, OnInit {
     }
 
     onStart() {
+        this.SetMenuCamera();
         task.spawn(() => {
             // eslint-disable-next-line roblox-ts/lua-truthiness
             while (task.wait(0.01)) {
                 this.Move(this.mouse);
             }
         });
+    }
 
-        MainMenuComponent.GameStarted.Connect((level: number) => {
-            this.SetCameraPosition();
-            this.SetCameraRestriction(level);
+    public Init() {
+        ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
+            replica.ListenToChange(["SessionStatus"], (newValue) => {
+                if (newValue === SessionStatus.Playing) {
+                    this.SetCameraPosition();
+                    this.SetCameraRestriction(replica.Data.Night);
+                } else if (newValue === SessionStatus.Menu) {
+                    this.SetMenuCamera();
+                }
+            });
         });
     }
 
-    private async SetCameraRestriction(level: number) {
+    private SetCameraRestriction(level: number) {
         const cameraRestriction = CameraRestriction.get(level);
         if (cameraRestriction === undefined) return;
 
@@ -53,11 +64,17 @@ export class CameraController implements OnStart, OnInit {
         this.leftCameraRestriction = cameraRestriction[0];
     }
 
-    private async SetCameraPosition() {
-        if (this.camera) {
+    private SetCameraPosition() {
+        if (this.camera && this.baseCameraPos) {
             this.camera.CFrame = this.baseCameraPos.CFrame;
             this.GameInited = true;
         }
+    }
+
+    private SetMenuCamera() {
+        if (this.camera === undefined) return;
+        this.camera.CFrame = this.MenuCameraPos.CFrame;
+        this.GameInited = false;
     }
 
     private Move(mouse: PlayerMouse) {

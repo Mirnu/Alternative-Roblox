@@ -28,8 +28,6 @@ export class GuiController implements OnStart {
 
     onStart() {
         this.initComponents();
-
-        ReplicaController.RequestData();
     }
 
     public EnableGui(name: keyof PlayerGuiChildrens) {
@@ -50,7 +48,7 @@ export class GuiController implements OnStart {
         return PlayerGui.WaitForChild(name) as PlayerGui[T];
     }
 
-    private initComponents() {
+    public initComponents() {
         this.components.addComponent<EyeComponents>(this.GetScreenGui("PlayerGui").Eyes);
         this.components.addComponent<MainMenuComponent>(this.GetScreenGui("MainMenu"));
     }

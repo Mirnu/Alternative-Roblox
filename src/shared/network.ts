@@ -4,15 +4,15 @@ interface ClientToServerEvents {
     EyeClosed(): void;
     EyeOpened(): void;
     RayProcces(object: Instance | undefined): void;
+    GameStarted(): void;
 }
 
 interface ServerToClientEvents {
-    GameInited(): void;
+    GameInited(night: number): void;
+    GameFinished(): void;
 }
 
-interface ClientToServerFunctions {
-    GameStarted(): number;
-}
+interface ClientToServerFunctions {}
 
 interface ServerToClientFunctions {}
 

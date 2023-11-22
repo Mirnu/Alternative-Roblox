@@ -1,19 +1,43 @@
+import { Components } from "@flamework/components";
 import { Service, OnStart, OnInit } from "@flamework/core";
 import Signal from "@rbxts/signal";
-import { Functions } from "server/network";
+import { Events } from "server/network";
+import { PlayerService } from "./PlayerService";
+import { PlayerComponent } from "server/components/PlayerComponent";
+import { INight } from "server/classes/INight";
+import { FirstNight } from "server/classes/FirstNight";
+
+const Nights = new ReadonlyMap<number, INight>([[1, new FirstNight()]]);
 
 @Service({})
-export class LevelService implements OnStart, OnInit {
+export class LevelService implements OnStart {
+    constructor(private components: Components, private playerService: PlayerService) {}
+
+    private player?: Player;
     public GameStarted = new Signal<(level: number) => void>();
 
-    onInit() {}
+    private NewLevel() {
+        if (this.player === undefined) return 0;
+        const playerComponent = this.components.getComponent<PlayerComponent>(this.player);
+        if (playerComponent === undefined) return 0;
 
-    private NewLevel(): number {
-        this.GameStarted.Fire(1);
-        return 1;
+        const night = playerComponent.StartNight();
+
+        this.GameStarted.Fire(night);
+        this.StartNight(night);
+        return night;
+    }
+
+    private StartNight(level: number) {
+        const night = Nights.get(level);
+        night?.StartNight();
     }
 
     onStart() {
-        Functions.GameStarted.setCallback(() => this.NewLevel());
+        Events.GameStarted.connect(() => this.NewLevel());
+
+        this.playerService.PlayerAddedSignal.Connect((player) => {
+            this.player = player;
+        });
     }
 }

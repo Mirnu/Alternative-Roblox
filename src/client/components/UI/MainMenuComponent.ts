@@ -1,14 +1,17 @@
 import { OnInit, OnStart } from "@flamework/core";
 import { Component, BaseComponent } from "@flamework/components";
 import { TweenService } from "@rbxts/services";
-import { Functions } from "client/network";
+import { Events, Functions } from "client/network";
 import Signal from "@rbxts/signal";
+import { Replica, ReplicaController } from "@rbxts/replicaservice";
+import { SessionStatus } from "shared/types/SessionStatus";
 
 interface Attributes {}
 
 @Component({})
 export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["MainMenu"]> implements OnStart {
     private MainMenuTexts = this.instance["Texts"];
+    private Continue = this.MainMenuTexts["0"];
     private NewGame = this.MainMenuTexts["1"];
     private Options = this.MainMenuTexts["2"];
     private Credits = this.MainMenuTexts["3"];
@@ -31,20 +34,43 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
         });
     }
 
-    private InitActivation() {
-        this.NewGame.text.Activated.Connect(async () => {
-            const level = await Functions.GameStarted.invoke();
+    public Init() {
+        ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
+            this.InitHandlerSessionStatus(replica);
+        });
+    }
 
-            if (level !== 0) {
-                MainMenuComponent.GameStarted.Fire(level);
+    private InitHandlerSessionStatus(replica: Replica<"PlayerState">) {
+        replica.ListenToChange(["SessionStatus"], (newValue) => {
+            if (newValue === SessionStatus.Playing) {
+                print("starting");
                 this.instance.Enabled = false;
+            } else if (newValue === SessionStatus.Menu) {
+                print("ponn");
+                this.instance.Enabled = true;
             }
         });
+    }
+
+    private InitActivation() {
+        this.NewGame.text.Activated.Connect(() => Events.GameStarted());
+    }
+
+    private InitTextLabels(night: number) {
+        print(night, "current");
+        if (night > 1) {
+            this.Continue.Visible = true;
+            this.Continue.text.Text = `Continue ${night} night`;
+        } else {
+            this.Continue.Visible = false;
+        }
     }
 
     onStart() {
         this.instance.Enabled = true;
         this.InitMouseMoveOperation();
         this.InitActivation();
+
+        Events.GameInited.connect((night) => this.InitTextLabels(night));
     }
 }

@@ -12,6 +12,9 @@ interface PlayerGui extends Instance {
 
     MainMenu: ScreenGui & {
         Texts: Folder & {
+            ["0"]: ImageLabel & {
+                text: TextButton;
+            };
             ["1"]: ImageLabel & {
                 text: TextButton;
             };
