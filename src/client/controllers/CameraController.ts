@@ -11,7 +11,6 @@ const CameraRestriction = new ReadonlyMap<number, [number, number]>([[1, [170, 1
 @Controller({})
 export class CameraController implements OnStart, OnInit {
     private camera?: Camera = Workspace.CurrentCamera;
-    private baseCameraPos = Workspace.WaitForChild("Map").WaitForChild("CamStarterPoint") as BasePart;
     private MenuCameraPos = Workspace.WaitForChild("Menu").WaitForChild("CamStarterPoint") as BasePart;
     private mouse: PlayerMouse = LocalPlayer.GetMouse();
 
@@ -65,8 +64,9 @@ export class CameraController implements OnStart, OnInit {
     }
 
     private SetCameraPosition() {
-        if (this.camera && this.baseCameraPos) {
-            this.camera.CFrame = this.baseCameraPos.CFrame;
+        if (this.camera) {
+            const CamStarterPoint = Workspace.WaitForChild("Map").WaitForChild("CamStarterPoint") as BasePart;
+            this.camera.CFrame = CamStarterPoint.CFrame;
             this.GameInited = true;
         }
     }

@@ -1,9 +1,8 @@
 import { OnStart } from "@flamework/core";
 import { Component, BaseComponent, Components } from "@flamework/components";
 import { LevelService } from "server/services/LevelService";
-import { mapGame } from "shared/Abbreviations/Map";
 import { Alternative1 } from "server/components/Alternatives/1";
-import { ReplicatedStorage } from "@rbxts/services";
+import { ReplicatedStorage, Workspace } from "@rbxts/services";
 
 interface Attributes {}
 
@@ -30,12 +29,12 @@ export class SpawnComponent extends BaseComponent<Attributes, BasePart> implemen
 
     public Show() {
         if (this.alternative === undefined) return;
-        this.alternative.Parent = mapGame.Alternative;
+        this.alternative.Parent = Workspace.Map.Alternative;
     }
 
     private GameStart(level: level) {
         this.alternative = ReplicatedStorage.Prefabs.Alternatives[level].Clone();
-        this.alternative.Parent = mapGame.Alternative;
+        this.alternative.Parent = Workspace.Map.Alternative;
         this.alternative.CFrame = this.instance.CFrame;
         this.components.addComponent<Alternative1>(this.alternative);
     }

@@ -57,7 +57,6 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
     }
 
     private InitTextLabels(night: number) {
-        print(night, "current");
         if (night > 1) {
             this.Continue.Visible = true;
             this.Continue.text.Text = `Continue ${night} night`;

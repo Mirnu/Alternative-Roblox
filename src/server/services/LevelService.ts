@@ -6,6 +6,7 @@ import { PlayerService } from "./PlayerService";
 import { PlayerComponent } from "server/components/PlayerComponent";
 import { INight } from "server/classes/INight";
 import { FirstNight } from "server/classes/FirstNight";
+import { ReplicatedStorage, Workspace } from "@rbxts/services";
 
 const Nights = new ReadonlyMap<number, INight>([[1, new FirstNight()]]);
 
@@ -20,6 +21,11 @@ export class LevelService implements OnStart {
         if (this.player === undefined) return 0;
         const playerComponent = this.components.getComponent<PlayerComponent>(this.player);
         if (playerComponent === undefined) return 0;
+
+        if (Workspace.FindFirstChild("Map")) Workspace.Map.Destroy();
+
+        const map = ReplicatedStorage.Prefabs.Maps.WaitForChild(playerComponent.GetNight()).WaitForChild("Map").Clone();
+        map.Parent = Workspace;
 
         const night = playerComponent.StartNight();
 

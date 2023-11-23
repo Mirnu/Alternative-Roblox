@@ -3,9 +3,6 @@ import { Service, OnStart, OnInit } from "@flamework/core";
 import { Players } from "@rbxts/services";
 import { PlayerComponent } from "server/components/PlayerComponent";
 import { Events } from "server/network";
-import { LevelService } from "./LevelService";
-import { INight } from "server/classes/INight";
-import { FirstNight } from "server/classes/FirstNight";
 import Signal from "@rbxts/signal";
 
 @Service({})

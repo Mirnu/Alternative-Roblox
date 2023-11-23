@@ -7,7 +7,7 @@ import { player } from "types/Player";
 import { Events } from "server/network";
 
 const TIME_DELAY = 0.1;
-const TIME_DELTA = 0.002 * 100;
+const TIME_DELTA = 0.002;
 
 @Service({})
 export class DayService implements OnStart {

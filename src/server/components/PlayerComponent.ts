@@ -4,6 +4,7 @@ import { Replica, ReplicaService } from "@rbxts/replicaservice";
 import { DayService } from "server/services/NightService";
 import { SessionStatus } from "shared/types/SessionStatus";
 import { Events } from "server/network";
+import { Character } from "types/Character";
 
 interface Attributes {}
 
@@ -55,6 +56,11 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
         }
 
         this.GameStateReplica?.SetValue("Mental", math.clamp(this.GameStateReplica.Data.Mental + damage, 0, 100));
+
+        if (this.GameStateReplica?.Data.Mental !== undefined && this.GameStateReplica?.Data.Mental <= 0) {
+            this.PlayerStateReplica?.SetValue("SessionStatus", SessionStatus.Menu);
+            this.TakeMentalDamage(100);
+        }
     }
 
     public StartNight(): number {
@@ -64,7 +70,7 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
         return this.PlayerStateReplica?.Data.Night;
     }
 
-    public GetNight() {
+    public GetNight(): number {
         if (this.PlayerStateReplica === undefined) return 1;
         return this.PlayerStateReplica.Data.Night;
     }
