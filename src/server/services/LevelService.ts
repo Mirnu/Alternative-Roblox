@@ -12,26 +12,50 @@ const Nights = new ReadonlyMap<number, INight>([[1, new FirstNight()]]);
 
 @Service({})
 export class LevelService implements OnStart {
-    constructor(private components: Components, private playerService: PlayerService) {}
+    constructor(private components: Components) {}
 
-    private player?: Player;
     public GameStarted = new Signal<(level: number) => void>();
 
-    private NewLevel() {
-        if (this.player === undefined) return 0;
-        const playerComponent = this.components.getComponent<PlayerComponent>(this.player);
-        if (playerComponent === undefined) return 0;
+    private GetPlayerComponent(player?: Player): PlayerComponent | undefined {
+        if (player === undefined) return;
+        return this.components.getComponent<PlayerComponent>(player);
+    }
 
+    private LevelReadiness(level?: number, playerComponent?: PlayerComponent) {
         if (Workspace.FindFirstChild("Map")) Workspace.Map.Destroy();
+        if (
+            ReplicatedStorage.Prefabs.Maps.FindFirstChild(tostring(level)) === undefined ||
+            playerComponent === undefined
+        )
+            return;
+        return true;
+    }
 
-        const map = ReplicatedStorage.Prefabs.Maps.WaitForChild(playerComponent.GetNight()).WaitForChild("Map").Clone();
+    private NewLevel(player: Player) {
+        const playerComponent = this.GetPlayerComponent(player);
+        if (this.LevelReadiness(1, playerComponent) === undefined) return;
+
+        const map = ReplicatedStorage.Prefabs.Maps.WaitForChild("1").WaitForChild("Map").Clone();
         map.Parent = Workspace;
+        playerComponent?.SetNight(1);
+        playerComponent!.StartNight();
 
-        const night = playerComponent.StartNight();
+        this.GameStarted.Fire(1);
+        this.StartNight(1);
+    }
+
+    private ContinueLevel(player: Player) {
+        const playerComponent = this.GetPlayerComponent(player);
+        if (this.LevelReadiness(playerComponent?.GetNight(), playerComponent) === undefined) return;
+
+        const map = ReplicatedStorage.Prefabs.Maps.WaitForChild(playerComponent!.GetNight())
+            .WaitForChild("Map")
+            .Clone();
+        map.Parent = Workspace;
+        const night = playerComponent!.StartNight();
 
         this.GameStarted.Fire(night);
         this.StartNight(night);
-        return night;
     }
 
     private StartNight(level: number) {
@@ -40,10 +64,7 @@ export class LevelService implements OnStart {
     }
 
     onStart() {
-        Events.GameStarted.connect(() => this.NewLevel());
-
-        this.playerService.PlayerAddedSignal.Connect((player) => {
-            this.player = player;
-        });
+        Events.NewGame.connect((player) => this.NewLevel(player));
+        Events.ContinueGame.connect((player) => this.ContinueLevel(player));
     }
 }

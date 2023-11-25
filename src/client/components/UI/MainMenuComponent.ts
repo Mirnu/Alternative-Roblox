@@ -34,6 +34,13 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
         });
     }
 
+    private ResetAllButtons() {
+        this.MainMenuTexts.GetChildren().forEach((imageLabel) => {
+            const ImageLabel = imageLabel as never as PlayerGui["MainMenu"]["Texts"]["1"];
+            ImageLabel.ImageTransparency = 1;
+        });
+    }
+
     public Init() {
         ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
             this.InitHandlerSessionStatus(replica);
@@ -43,17 +50,21 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
     private InitHandlerSessionStatus(replica: Replica<"PlayerState">) {
         replica.ListenToChange(["SessionStatus"], (newValue) => {
             if (newValue === SessionStatus.Playing) {
-                print("starting");
                 this.instance.Enabled = false;
             } else if (newValue === SessionStatus.Menu) {
-                print("ponn");
                 this.instance.Enabled = true;
             }
         });
     }
 
     private InitActivation() {
-        this.NewGame.text.Activated.Connect(() => Events.GameStarted());
+        this.NewGame.text.Activated.Connect(() => Events.NewGame.fire());
+        this.Continue.text.Activated.Connect(() => Events.ContinueGame.fire());
+
+        this.MainMenuTexts.GetChildren().forEach((imageLabel) => {
+            const ImageLabel = imageLabel as never as PlayerGui["MainMenu"]["Texts"]["1"];
+            ImageLabel.text.Activated.Connect(() => this.ResetAllButtons());
+        });
     }
 
     private InitTextLabels(night: number) {

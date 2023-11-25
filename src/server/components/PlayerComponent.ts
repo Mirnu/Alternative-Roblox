@@ -4,7 +4,6 @@ import { Replica, ReplicaService } from "@rbxts/replicaservice";
 import { DayService } from "server/services/NightService";
 import { SessionStatus } from "shared/types/SessionStatus";
 import { Events } from "server/network";
-import { Character } from "types/Character";
 
 interface Attributes {}
 
@@ -26,7 +25,7 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
         this.initGameState();
         this.initPlayerState();
 
-        this.dayService.FinishSignal.Connect(() => this.NightOver());
+        this.dayService.FinishSignal.Connect(() => this.NightOver(1));
     }
 
     private initGameState() {
@@ -51,6 +50,7 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
     }
 
     public TakeMentalDamage(damage: number) {
+        if (this.PlayerStateReplica?.Data.SessionStatus !== SessionStatus.Playing) return;
         if (!this.EyeOpened) {
             damage = EyeDamage;
         }
@@ -58,8 +58,7 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
         this.GameStateReplica?.SetValue("Mental", math.clamp(this.GameStateReplica.Data.Mental + damage, 0, 100));
 
         if (this.GameStateReplica?.Data.Mental !== undefined && this.GameStateReplica?.Data.Mental <= 0) {
-            this.PlayerStateReplica?.SetValue("SessionStatus", SessionStatus.Menu);
-            this.TakeMentalDamage(100);
+            this.NightOver(0);
         }
     }
 
@@ -75,9 +74,15 @@ export class PlayerComponent extends BaseComponent<Attributes, Player> implement
         return this.PlayerStateReplica.Data.Night;
     }
 
-    private NightOver() {
-        this.PlayerStateReplica?.SetValue("Night", this.GetNight() + 1);
+    public SetNight(night: number) {
+        this.PlayerStateReplica?.SetValue("Night", night);
+    }
+
+    private NightOver(night: number) {
+        this.EyeOpened = true;
+        this.PlayerStateReplica?.SetValue("Night", this.GetNight() + night);
         Events.GameInited.fire(this.instance, this.GetNight());
+        this.TakeMentalDamage(100);
         this.PlayerStateReplica?.SetValue("SessionStatus", SessionStatus.Menu);
     }
 }

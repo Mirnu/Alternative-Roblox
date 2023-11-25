@@ -28,6 +28,7 @@ export class GuiController implements OnStart {
 
     onStart() {
         this.initComponents();
+        this.EnableGui("PlayerGui");
     }
 
     public EnableGui(name: keyof PlayerGuiChildrens) {

@@ -4,7 +4,8 @@ interface ClientToServerEvents {
     EyeClosed(): void;
     EyeOpened(): void;
     RayProcces(object: Instance | undefined): void;
-    GameStarted(): void;
+    NewGame(): void;
+    ContinueGame(): void;
 }
 
 interface ServerToClientEvents {

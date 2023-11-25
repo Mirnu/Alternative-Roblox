@@ -13,8 +13,6 @@ export class DetectionController implements OnStart {
     private camera: Camera | undefined = Workspace.CurrentCamera;
     private CheckAltnernativesThread?: thread;
 
-    constructor(private components: Components) {}
-
     onStart(): void {}
 
     private InitCheckAlternatives() {
@@ -36,6 +34,8 @@ export class DetectionController implements OnStart {
 
     private CheckAlternatives() {
         let will = false;
+
+        if (Workspace.FindFirstChild("Map")?.FindFirstChild("Alternative") === undefined) return;
 
         Workspace.Map.Alternative.GetChildren().forEach((_alternative) => {
             if (this.camera) {

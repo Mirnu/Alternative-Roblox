@@ -4,11 +4,15 @@ import { ClickState, InputState } from "shared/types/InputState";
 import { Bindle } from "shared/Decorators/BindleDecorators";
 import { Events } from "client/network";
 import { TweenService } from "@rbxts/services";
+import { ReplicaController } from "@rbxts/replicaservice";
+import { SessionStatus } from "shared/types/SessionStatus";
 
 @Component({})
 export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eyes"]> implements OnStart {
     private static instance?: EyeComponents;
     private stateEye = 0;
+
+    private canClose = false;
 
     private currentTweens: Array<Tween> = new Array<Tween>();
 
@@ -20,8 +24,23 @@ export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eye
         return this.instance;
     }
 
+    public Init() {
+        ReplicaController.ReplicaOfClassCreated("PlayerState", (repica) => {
+            repica.ListenToChange("SessionStatus", (newValue) => {
+                if (newValue === SessionStatus.Menu || repica.Data.Night > 1) {
+                    this.canClose = false;
+                    this.instance.down.Position = UDim2.fromScale(0, 0.467);
+                    this.instance.up.Position = UDim2.fromScale(0, -0.501);
+                } else if (newValue === SessionStatus.Playing) {
+                    this.canClose = true;
+                }
+            });
+        });
+    }
+
     @Bindle(Enum.KeyCode.Space, InputState.Began, ClickState.pinch)
     public CloseEyes() {
+        if (!this.canClose) return;
         // eslint-disable-next-line roblox-ts/lua-truthiness
         while (task.wait(0.005)) {
             const res: Boolean = this.Close();
@@ -37,6 +56,7 @@ export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eye
 
     @Bindle(Enum.KeyCode.Space, InputState.Ended, ClickState.pinch)
     public OpenEyes() {
+        if (!this.canClose) return;
         // eslint-disable-next-line roblox-ts/lua-truthiness
         while (task.wait(0.005)) {
             const res: Boolean = this.Open();
