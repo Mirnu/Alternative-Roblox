@@ -8,6 +8,17 @@ interface ReplicatedStorage extends Instance {
             ["1"]: Part & {
                 Decal: Decal;
             };
+            ["2"]: Part & {
+                Decal: Decal;
+            };
+        };
+        Sound: Folder & {
+            Nights: Folder & {
+                ["2"]: Folder & {
+                    ["1"]: Sound;
+                    ["2"]: Sound;
+                };
+            };
         };
         Maps: Folder & {
             ["1"]: Folder & {
@@ -27,6 +38,21 @@ interface ReplicatedStorage extends Instance {
                         };
                         ["Meshes/1lvlalter_Cube.002 (1)"]: MeshPart;
                     };
+                };
+            };
+            ["2"]: Folder & {
+                Map: Folder & {
+                    AlternativeSpawn: Folder;
+                    Purgatory: Folder & {
+                        Part: Part;
+                        s: Model & {
+                            Mesh: Part & {
+                                Mesh: SpecialMesh;
+                            };
+                            MeshPart: MeshPart;
+                        };
+                    };
+                    CamStarterPoint: Part;
                 };
             };
         };

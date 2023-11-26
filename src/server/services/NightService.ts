@@ -1,50 +1,49 @@
 import { Service, OnStart, OnInit } from "@flamework/core";
-import { LevelService } from "./LevelService";
-import { Lighting, ReplicatedStorage, Workspace } from "@rbxts/services";
-import Signal from "@rbxts/signal";
-import { PlayerService } from "./PlayerService";
-import { player } from "types/Player";
-import { Events } from "server/network";
 import { Components } from "@flamework/components";
-import { SpawnComponent } from "server/components/SpawnComponent";
-
-const TIME_DELAY = 0.1;
-const TIME_DELTA = 0.002 * 20;
+import { PlayerComponent } from "server/components/PlayerComponent";
+import { SessionStatus } from "shared/types/SessionStatus";
+import { Events } from "server/network";
 
 @Service({})
-export class DayService implements OnStart {
-    constructor(private levelService: LevelService, private components: Components) {}
+export class NightService implements OnStart {
+    constructor(private components: Components) {}
 
-    public FinishSignal = new Signal();
+    onStart() {}
 
-    onStart() {
-        this.levelService.GameStarted.Connect(() => this.StartNightCycle());
+    public Init(player: Player) {
+        const playerComponent = this.components.getComponent<PlayerComponent>(player);
+        if (playerComponent === undefined) return;
     }
 
-    private ClearLeftovers() {
-        if (Workspace.Map.FindFirstChild("AlternativeSpawn")) {
-            Workspace.Map.AlternativeSpawn.GetChildren().forEach((instance) => {
-                this.components.removeComponent<SpawnComponent>(instance);
-            });
-        }
-        ReplicatedStorage.Temp.Alternatives.GetChildren().forEach((instance) => {
-            instance.Destroy();
-        });
+    public StartNight(player: Player): number {
+        const playerComponent = this.components.getComponent<PlayerComponent>(player);
+        if (playerComponent === undefined || playerComponent.PlayerStateReplica?.Data.Night === undefined) return -1;
+        playerComponent.PlayerStateReplica.SetValue("SessionStatus", SessionStatus.Playing);
+
+        return playerComponent.PlayerStateReplica.Data.Night;
     }
 
-    private StartNightCycle() {
-        Lighting.ClockTime = 0;
+    public GetNight(player: Player): number {
+        const playerComponent = this.components.getComponent<PlayerComponent>(player);
+        if (playerComponent === undefined || playerComponent.PlayerStateReplica?.Data.Night === undefined) return 1;
+        return playerComponent.PlayerStateReplica.Data.Night;
+    }
 
-        // eslint-disable-next-line roblox-ts/lua-truthiness
-        while (task.wait(TIME_DELAY)) {
-            Lighting.ClockTime += TIME_DELTA;
+    public SetNight(player: Player, night: number) {
+        const playerReplica = this.components.getComponent<PlayerComponent>(player)?.PlayerStateReplica;
 
-            if (Lighting.ClockTime >= 7) {
-                break;
-            }
-        }
+        if (playerReplica) playerReplica.SetValue("Night", night);
+    }
 
-        this.ClearLeftovers();
-        this.FinishSignal.Fire();
+    public NightOver(player: Player, night: number) {
+        const playerComponent = this.components.getComponent<PlayerComponent>(player);
+        if (playerComponent === undefined) return;
+
+        playerComponent.EyeOpened = true;
+        playerComponent.GameStateReplica?.SetValue("Mental", 100);
+        playerComponent.PlayerStateReplica?.SetValue("SessionStatus", SessionStatus.Menu);
+        playerComponent.PlayerStateReplica?.SetValue("Night", this.GetNight(player) + night);
+        playerComponent.PlayerStateChanged.Fire(playerComponent.PlayerStateReplica!.Data);
+        Events.GameInited.fire(player, this.GetNight(player));
     }
 }

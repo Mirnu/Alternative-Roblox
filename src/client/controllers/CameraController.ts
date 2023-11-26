@@ -80,7 +80,6 @@ export class CameraController implements OnStart, OnInit {
     }
 
     private canRight(mouse: PlayerMouse) {
-        print(this.rightCameraRestriction);
         if (this.rightCameraRestriction !== undefined) {
             return (
                 mouse.X > this.rightBorder &&

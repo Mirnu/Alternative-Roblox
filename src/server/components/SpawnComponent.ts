@@ -1,10 +1,17 @@
 import { Component, BaseComponent, Components } from "@flamework/components";
-import { Alternative1 } from "server/components/Alternatives/1";
+import { Alternative1 } from "server/components/Alternatives/Alternative1";
 import { ReplicatedStorage, Workspace } from "@rbxts/services";
+import { AlternativeComponent } from "./Alternatives/AlternativeComponent";
+import { Alternative2 } from "./Alternatives/Alternative2";
 
 interface Attributes {}
 
-type level = 1;
+type level = 1 | 2;
+
+const alternatives = new Map<number, typeof AlternativeComponent>([
+    [1, Alternative1],
+    [2, Alternative2],
+]);
 
 @Component({})
 export class SpawnComponent extends BaseComponent<Attributes, BasePart> {
@@ -36,6 +43,6 @@ export class SpawnComponent extends BaseComponent<Attributes, BasePart> {
         this.alternative = ReplicatedStorage.Prefabs.Alternatives[level].Clone();
         this.alternative.Parent = Workspace.Map.Alternative;
         this.alternative.CFrame = this.instance.CFrame;
-        this.components.addComponent<Alternative1>(this.alternative);
+        this.components.addComponent(this.alternative, alternatives.get(level));
     }
 }

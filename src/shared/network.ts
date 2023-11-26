@@ -6,6 +6,8 @@ interface ClientToServerEvents {
     RayProcces(object: Instance | undefined): void;
     NewGame(): void;
     ContinueGame(): void;
+    FlashLightEnable(): void;
+    FlashLightDisable(): void;
 }
 
 interface ServerToClientEvents {

@@ -1,25 +1,21 @@
-import { Dependency, OnStart } from "@flamework/core";
-import { Component, Components } from "@flamework/components";
-import { INight } from "./INight";
-import { SpawnComponent } from "../components/SpawnComponent";
+import { SpawnComponent } from "server/components/SpawnComponent";
 import { Workspace } from "@rbxts/services";
+import { Dependency } from "@flamework/core";
+import { Components } from "@flamework/components";
 
 const components = Dependency<Components>();
 
 const HARDNESS = 1;
 
-@Component({})
-export class FirstNight implements OnStart, INight {
+export class SecondNight {
     private Spawns: SpawnComponent[] = [];
-
-    onStart() {}
 
     private SetSpawns() {
         if (Workspace.FindFirstChild("Map")?.FindFirstChild("AlternativeSpawn") === undefined) return;
 
         Workspace.Map.AlternativeSpawn.GetChildren().forEach((spawn) => {
             const spawnComponent = components.addComponent<SpawnComponent>(spawn);
-            spawnComponent.GameStart(1);
+            spawnComponent.GameStart(2);
             this.Spawns.push(spawnComponent);
         });
     }

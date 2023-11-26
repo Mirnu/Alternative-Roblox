@@ -4,10 +4,11 @@ import { Players } from "@rbxts/services";
 import { PlayerComponent } from "server/components/PlayerComponent";
 import { Events } from "server/network";
 import Signal from "@rbxts/signal";
+import { NightService } from "./NightService";
 
 @Service({})
 export class PlayerService implements OnStart {
-    constructor(private components: Components) {}
+    constructor(private components: Components, private nightService: NightService) {}
 
     public PlayerAddedSignal = new Signal<(player: Player) => void>();
 
@@ -20,6 +21,6 @@ export class PlayerService implements OnStart {
 
     private PlayerInit(player: Player) {
         const playerComponent = this.components.addComponent<PlayerComponent>(player);
-        Events.GameInited.fire(player, playerComponent.GetNight());
+        Events.GameInited.fire(player, this.nightService.GetNight(player));
     }
 }

@@ -25,7 +25,7 @@ export class DetectionController implements OnStart {
     public Init() {
         ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
             replica.ListenToChange("SessionStatus", (newValue) => {
-                if (newValue === SessionStatus.Playing) this.InitCheckAlternatives();
+                if (newValue === SessionStatus.Playing && replica.Data.Night < 2) this.InitCheckAlternatives();
                 else if (newValue === SessionStatus.Menu && this.CheckAltnernativesThread)
                     task.cancel(this.CheckAltnernativesThread);
             });

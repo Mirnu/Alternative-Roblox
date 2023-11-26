@@ -3,7 +3,7 @@ import { Component, BaseComponent } from "@flamework/components";
 import { ClickState, InputState } from "shared/types/InputState";
 import { Bindle } from "shared/Decorators/BindleDecorators";
 import { Events } from "client/network";
-import { TweenService } from "@rbxts/services";
+import { ContextActionService, TweenService, UserInputService } from "@rbxts/services";
 import { ReplicaController } from "@rbxts/replicaservice";
 import { SessionStatus } from "shared/types/SessionStatus";
 
@@ -11,13 +11,19 @@ import { SessionStatus } from "shared/types/SessionStatus";
 export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eyes"]> implements OnStart {
     private static instance?: EyeComponents;
     private stateEye = 0;
-
     private canClose = false;
-
     private currentTweens: Array<Tween> = new Array<Tween>();
+    private closeEyesThread?: thread;
 
     onStart() {
         EyeComponents.instance = this;
+
+        UserInputService.InputBegan.Connect((input) => {
+            if (input.KeyCode === Enum.KeyCode.Space) this.CloseEyes();
+        });
+        UserInputService.InputEnded.Connect((input) => {
+            if (input.KeyCode === Enum.KeyCode.Space) this.OpenEyes();
+        });
     }
 
     public static GetInstance() {
@@ -38,36 +44,44 @@ export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eye
         });
     }
 
-    @Bindle(Enum.KeyCode.Space, InputState.Began, ClickState.pinch)
+    //@Bindle(Enum.KeyCode.Space, InputState.Began, ClickState.pinch)
     public CloseEyes() {
-        if (!this.canClose) return;
-        // eslint-disable-next-line roblox-ts/lua-truthiness
-        while (task.wait(0.005)) {
-            const res: Boolean = this.Close();
+        if (this.closeEyesThread) task.cancel(this.closeEyesThread);
+        this.closeEyesThread = task.spawn(() => {
+            // eslint-disable-next-line roblox-ts/lua-truthiness
+            while (task.wait(0.005)) {
+                if (!this.canClose) return;
+                const res: Boolean = this.Close();
 
-            this.stateEye = math.clamp(this.stateEye + 0.01, 0, 1);
-            if (this.stateEye > 0.8) Events.EyeClosed.fire();
+                this.stateEye = math.clamp(this.stateEye + 0.01, 0, 1);
+                if (this.stateEye > 0.8) Events.EyeClosed.fire();
 
-            if (!res) {
-                break;
+                if (!res) {
+                    break;
+                }
+                print(1);
             }
-        }
+        });
     }
 
-    @Bindle(Enum.KeyCode.Space, InputState.Ended, ClickState.pinch)
+    //@Bindle(Enum.KeyCode.Space, InputState.Ended, ClickState.pinch)
     public OpenEyes() {
-        if (!this.canClose) return;
-        // eslint-disable-next-line roblox-ts/lua-truthiness
-        while (task.wait(0.005)) {
-            const res: Boolean = this.Open();
+        if (this.closeEyesThread) task.cancel(this.closeEyesThread);
+        this.closeEyesThread = task.spawn(() => {
+            // eslint-disable-next-line roblox-ts/lua-truthiness
+            while (task.wait(0.005)) {
+                if (!this.canClose) return;
+                const res: Boolean = this.Open();
 
-            this.stateEye = math.clamp(this.stateEye - 0.01, 0, 1);
-            if (this.stateEye < 0.8) Events.EyeOpened.fire();
+                this.stateEye = math.clamp(this.stateEye - 0.01, 0, 1);
+                if (this.stateEye < 0.8) Events.EyeOpened.fire();
 
-            if (!res) {
-                break;
+                if (!res) {
+                    break;
+                }
+                print(2);
             }
-        }
+        });
     }
 
     private Open() {

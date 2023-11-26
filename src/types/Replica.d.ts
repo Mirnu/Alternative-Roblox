@@ -6,6 +6,7 @@ declare global {
         GameState: {
             Data: {
                 Mental: number;
+                FlashLight: number;
             };
         };
         PlayerState: {
@@ -17,4 +18,5 @@ declare global {
     }
 }
 
+export type PLayerData = { Night: number; SessionStatus: SessionStatus };
 export type PlayerDataReplica = Replica<"GameState">;

@@ -4,9 +4,9 @@ import { ReplicaController } from "@rbxts/replicaservice";
 import { MainMenuComponent } from "client/components/UI/MainMenuComponent";
 import { CameraController } from "./CameraController";
 import { MentalController } from "./MentalController";
-import { GuiController } from "./GuiController";
 import { DetectionController } from "./DetectionController";
 import { EyeComponents } from "client/components/UI/EyeComponents";
+import { FlashLightController } from "./FlashLightController";
 
 @Controller({
     loadOrder: 2,
@@ -17,6 +17,7 @@ export class ReplicaHandlerController implements OnStart {
         private cameraController: CameraController,
         private mentalController: MentalController,
         private detectionController: DetectionController,
+        private flashLightController: FlashLightController,
     ) {}
 
     private InitMainMenuComponents() {
@@ -38,6 +39,7 @@ export class ReplicaHandlerController implements OnStart {
     onStart() {
         this.InitMainMenuComponents();
         this.InitEyeComponents();
+        this.flashLightController.Init();
         this.mentalController.MentalChanged();
         this.cameraController.Init();
         this.detectionController.Init();
