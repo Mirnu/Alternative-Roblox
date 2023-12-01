@@ -17,7 +17,7 @@ const Nights = new ReadonlyMap<number, INight>([
 ]);
 
 const TIME_DELAY = 0.1;
-const TIME_DELTA = 0.002 * 10;
+const TIME_DELTA = 0.002 * 50;
 
 @Service({})
 export class LevelService implements OnStart {
@@ -52,8 +52,8 @@ export class LevelService implements OnStart {
 
         const map = ReplicatedStorage.Prefabs.Maps.WaitForChild("1").WaitForChild("Map").Clone();
         map.Parent = Workspace;
-        this.nightService.SetNight(player, 1);
-        this.nightService.StartNight(player);
+        playerComponent?.SetNight(1);
+        playerComponent?.StartNight();
 
         this.GameStarted.Fire(1);
         this.StartNight(1);
@@ -61,13 +61,15 @@ export class LevelService implements OnStart {
 
     private ContinueLevel(player: Player) {
         const playerComponent = this.GetPlayerComponent(player);
-        if (this.LevelReadiness(this.nightService.GetNight(player), playerComponent) === undefined) return;
+        if (this.LevelReadiness(playerComponent?.PlayerStateReplica!.Data.Static.Night, playerComponent) === undefined)
+            return;
 
-        const map = ReplicatedStorage.Prefabs.Maps.WaitForChild(this.nightService.GetNight(player))
+        const map = ReplicatedStorage.Prefabs.Maps.WaitForChild(playerComponent!.PlayerStateReplica!.Data.Static.Night)
             .WaitForChild("Map")
             .Clone();
         map.Parent = Workspace;
-        const night = this.nightService.StartNight(player);
+
+        const night = playerComponent!.StartNight();
 
         this.GameStarted.Fire(night);
         this.StartNight(night);
@@ -116,15 +118,15 @@ export class LevelService implements OnStart {
 
     private PlayerAdded() {
         this.playerService.PlayerAddedSignal.Connect((player) => {
-            this.nightService.Init(player);
-            this.FinishSignal.Connect(() => this.nightService.NightOver(player, 1));
-            Events.GameInited.fire(player, this.nightService.GetNight(player));
-
             const playerComponent = this.GetPlayerComponent(player);
             if (playerComponent === undefined) return;
-            playerComponent.MentalChanged.Connect((mental) => {
-                if (mental !== undefined && mental <= 0) {
-                    this.nightService.NightOver(player, 0);
+
+            this.FinishSignal.Connect(() => this.nightService.FinishNight(player, 1));
+            Events.GameInited.fire(player, playerComponent?.PlayerStateReplica!.Data.Static.Night);
+
+            playerComponent.PlayerStateChanged.Connect((playerState) => {
+                if (playerState.Dynamic.Mental !== undefined && playerState.Dynamic.Mental <= 0) {
+                    this.nightService.FinishNight(player, 0);
                     task.cancel(this.ThreadNightCycle!);
                     Lighting.ClockTime = 12;
                 }

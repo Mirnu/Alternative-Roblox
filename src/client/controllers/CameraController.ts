@@ -1,10 +1,9 @@
 import { Controller, OnStart, OnInit, Dependency } from "@flamework/core";
-import { ReplicaController } from "@rbxts/replicaservice";
 import { Workspace } from "@rbxts/services";
 import { LocalPlayer } from "client/LocalPlayer";
+import { OnReplicaCreated } from "shared/Decorators/ReplicaDecorators";
 import { SessionStatus } from "shared/types/SessionStatus";
-
-const regen = 0.5;
+import { PlayerDataReplica } from "types/Replica";
 
 const CameraRestriction = new ReadonlyMap<number, [number, number]>([[1, [170, 1]]]);
 
@@ -23,7 +22,6 @@ export class CameraController implements OnStart, OnInit {
     private leftBorder!: number;
 
     public GameInited = false;
-
     onInit() {
         if (this.camera !== undefined) {
             this.rightBorder = this.camera.ViewportSize.X - this.camera.ViewportSize.X / 8;
@@ -42,18 +40,17 @@ export class CameraController implements OnStart, OnInit {
         });
     }
 
-    public Init() {
-        ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
-            replica.ListenToChange(["SessionStatus"], (newValue) => {
-                if (newValue === SessionStatus.Playing) {
-                    this.SetCameraPosition();
-                    this.SetCameraRestriction(replica.Data.Night);
-                } else if (newValue === SessionStatus.Menu) {
-                    this.rightCameraRestriction = undefined;
-                    this.leftCameraRestriction = undefined;
-                    this.SetMenuCamera();
-                }
-            });
+    @OnReplicaCreated()
+    public Init(replica: PlayerDataReplica) {
+        replica.ListenToChange("Static.SessionStatus", (newSessionStatus) => {
+            if (newSessionStatus === SessionStatus.Playing) {
+                this.SetCameraPosition();
+                this.SetCameraRestriction(replica.Data.Static.Night);
+            } else if (newSessionStatus === SessionStatus.Menu) {
+                this.rightCameraRestriction = undefined;
+                this.leftCameraRestriction = undefined;
+                this.SetMenuCamera();
+            }
         });
     }
 
@@ -67,6 +64,7 @@ export class CameraController implements OnStart, OnInit {
 
     private SetCameraPosition() {
         if (this.camera) {
+            print("Set pos");
             const CamStarterPoint = Workspace.WaitForChild("Map").WaitForChild("CamStarterPoint") as BasePart;
             this.camera.CFrame = CamStarterPoint.CFrame;
             this.GameInited = true;

@@ -20,18 +20,29 @@ export class SecondNight {
         });
     }
 
+    private getOccupiedSpawns(): number[] {
+        const spawns: number[] = [];
+        let constAlternatives = 0;
+
+        while (constAlternatives !== 3) {
+            const randNum = math.random(0, 7);
+            if (spawns.indexOf(randNum) === -1) spawns.insert(randNum, randNum);
+            constAlternatives++;
+        }
+        return spawns;
+    }
+
     public StartNight() {
         this.SetSpawns();
         // eslint-disable-next-line roblox-ts/lua-truthiness
         while (task.wait(math.random(5 / HARDNESS, 10 / HARDNESS))) {
-            const emptySpawn = math.random(0, 2);
-
+            const occupiedSpawns = this.getOccupiedSpawns();
             for (let index = 0; index < this.Spawns.size(); index++) {
-                if (index === emptySpawn) {
-                    this.Spawns[index].Hide();
+                if (occupiedSpawns[index] !== undefined) {
+                    this.Spawns[index].Show();
                     continue;
                 }
-                this.Spawns[index].Show();
+                this.Spawns[index].Hide();
             }
         }
     }

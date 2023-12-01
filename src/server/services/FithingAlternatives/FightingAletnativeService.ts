@@ -5,9 +5,8 @@ import { FlashLight } from "./modules/FlashLight";
 import { PlayerService } from "../PlayerService";
 import { Components } from "@flamework/components";
 import { PlayerComponent } from "server/components/PlayerComponent";
-import { player } from "types/Player";
+import { PLayerStateData } from "types/Replica";
 import { SessionStatus } from "shared/types/SessionStatus";
-import { PLayerData } from "types/Replica";
 
 const TypesFightings = new Map<number, Array<IFigthing>>([
     [1, [new ViewAlternatives()]],
@@ -27,10 +26,10 @@ export class FightingAletnativeService implements OnStart {
         this.currentTypeFightings?.forEach((thread) => task.cancel(thread));
     }
 
-    private PlayerStateChanged(data: PLayerData) {
+    private PlayerStateChanged(data: PLayerStateData) {
         this.stopCurrentTypeFightings();
         const thread = task.spawn(() => {
-            TypesFightings.get(data.Night)?.forEach((element) => element.Start());
+            TypesFightings.get(data.Static.Night)?.forEach((element) => element.Start());
         });
         this.currentTypeFightings?.push(thread);
     }
@@ -39,6 +38,9 @@ export class FightingAletnativeService implements OnStart {
         const playerComponent = this.components.getComponent<PlayerComponent>(player);
         if (playerComponent === undefined) return;
         this.PlayerStateChanged(playerComponent.PlayerStateReplica!.Data);
-        playerComponent.PlayerStateChanged.Connect((data) => this.PlayerStateChanged(data));
+        playerComponent.SessionStatusChangedSignal.Connect((data) => {
+            if (data.Static.SessionStatus === SessionStatus.Playing) this.PlayerStateChanged(data);
+            else if (data.Static.SessionStatus === SessionStatus.Menu) this.stopCurrentTypeFightings();
+        });
     }
 }

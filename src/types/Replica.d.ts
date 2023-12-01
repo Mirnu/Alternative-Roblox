@@ -3,20 +3,31 @@ import { SessionStatus } from "../shared/types/SessionStatus";
 
 declare global {
     interface Replicas {
-        GameState: {
-            Data: {
-                Mental: number;
-                FlashLight: number;
-            };
-        };
         PlayerState: {
             Data: {
-                Night: number;
-                SessionStatus: SessionStatus;
+                Static: {
+                    Night: number;
+                    SessionStatus: SessionStatus;
+                };
+                Dynamic: {
+                    Mental: number;
+                    FlashLight: number;
+                    EyeOpened: boolean;
+                };
             };
         };
     }
 }
 
-export type PLayerData = { Night: number; SessionStatus: SessionStatus };
-export type PlayerDataReplica = Replica<"GameState">;
+export type PLayerStateData = {
+    Static: {
+        Night: number;
+        SessionStatus: SessionStatus;
+    };
+    Dynamic: {
+        Mental: number;
+        FlashLight: number;
+        EyeOpened: boolean;
+    };
+};
+export type PlayerDataReplica = Replica<"PlayerState">;

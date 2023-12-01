@@ -1,5 +1,5 @@
 import { Components } from "@flamework/components";
-import { Service, OnStart, Dependency } from "@flamework/core";
+import { Service, Dependency } from "@flamework/core";
 import { AlternativeComponent } from "server/components/Alternatives/AlternativeComponent";
 import { PlayerComponent } from "server/components/PlayerComponent";
 import { Events } from "server/network";
@@ -36,19 +36,16 @@ export class ViewAlternatives implements IFigthing {
 
     private AlternativeDetection(player: Player, damage: number) {
         const PlayerComponent = components.getComponent<PlayerComponent>(player)!;
-        PlayerComponent.GameStateReplica?.SetValue(
-            "Mental",
-            math.clamp(PlayerComponent.GameStateReplica.Data.Mental + damage, 0, 100),
-        );
+        PlayerComponent.SetMental(PlayerComponent.PlayerStateReplica!.Data.Dynamic.Mental + damage);
     }
 
     private EyeClose(player: Player) {
         const PlayerComponent = components.getComponent<PlayerComponent>(player)!;
-        PlayerComponent.EyeOpened = false;
+        PlayerComponent.SetEyeState(false);
     }
 
     private EyeOpened(player: Player) {
         const PlayerComponent = components.getComponent<PlayerComponent>(player)!;
-        PlayerComponent.EyeOpened = true;
+        PlayerComponent.SetEyeState(true);
     }
 }

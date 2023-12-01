@@ -4,52 +4,74 @@ import { Replica, ReplicaService } from "@rbxts/replicaservice";
 import { NightService } from "server/services/NightService";
 import { SessionStatus } from "shared/types/SessionStatus";
 import Signal from "@rbxts/signal";
-import { PLayerData } from "types/Replica";
+import { PLayerStateData } from "types/Replica";
 
 interface Attributes {}
 
-const EyeDamage = -0.2;
-const GameclassToken = ReplicaService.NewClassToken("GameState");
 const PlayerclassToken = ReplicaService.NewClassToken("PlayerState");
 
 @Component({})
 export class PlayerComponent extends BaseComponent<Attributes, Player> implements OnStart {
-    constructor(private nightService: NightService) {
-        super();
-    }
-
-    public GameStateReplica?: Replica<"GameState">;
     public PlayerStateReplica?: Replica<"PlayerState">;
-    public EyeOpened = true;
-
-    public MentalChanged = new Signal<(mental: number) => void>();
-    public PlayerStateChanged = new Signal<(data: PLayerData) => void>();
+    public PlayerStateChanged = new Signal<(data: PLayerStateData) => void>();
+    public SessionStatusChangedSignal = new Signal<(data: PLayerStateData) => void>();
 
     onStart() {
-        this.initGameState();
         this.initPlayerState();
         this.PlayerStateChanged.Fire(this.PlayerStateReplica!.Data);
     }
 
-    private initGameState() {
-        this.GameStateReplica = ReplicaService.NewReplica({
-            ClassToken: GameclassToken,
-            Data: {
-                Mental: 100,
-                FlashLight: 100,
-            },
-            Replication: this.instance,
-        });
+    private playerStateChange() {
+        if (this.PlayerStateReplica?.Data) this.PlayerStateChanged.Fire(this.PlayerStateReplica?.Data);
     }
 
     private initPlayerState() {
         this.PlayerStateReplica = ReplicaService.NewReplica({
             ClassToken: PlayerclassToken,
             Data: {
-                Night: 1,
-                SessionStatus: SessionStatus.Menu,
+                Static: {
+                    Night: 2,
+                    SessionStatus: SessionStatus.Menu,
+                },
+                Dynamic: {
+                    EyeOpened: true,
+                    Mental: 100,
+                    FlashLight: 100,
+                },
             },
             Replication: this.instance,
         });
+    }
+
+    public StartNight(): number {
+        if (this.PlayerStateReplica?.Data.Static.Night === undefined) return -1;
+        this.PlayerStateReplica.SetValue("Static.SessionStatus", SessionStatus.Playing);
+        this.playerStateChange();
+        return this.PlayerStateReplica!.Data.Static.Night;
+    }
+
+    public SetNight(night: number) {
+        this.PlayerStateReplica?.SetValue("Static.Night", night);
+        this.playerStateChange();
+    }
+
+    public SetMental(mental: number) {
+        this.PlayerStateReplica?.SetValue("Dynamic.Mental", math.clamp(mental, 0, 100));
+        this.playerStateChange();
+    }
+
+    public SetSessionStatus(sessionStatus: SessionStatus) {
+        this.PlayerStateReplica?.SetValue("Static.SessionStatus", sessionStatus);
+        this.SessionStatusChangedSignal.Fire(this.PlayerStateReplica!.Data);
+    }
+
+    public SetEyeState(state: boolean) {
+        this.PlayerStateReplica?.SetValue("Dynamic.EyeOpened", state);
+        this.playerStateChange();
+    }
+
+    public SetFlashLight(value: number) {
+        this.PlayerStateReplica?.SetValue("Dynamic.FlashLight", math.max(value, 0));
+        this.playerStateChange();
     }
 }

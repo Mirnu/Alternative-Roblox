@@ -1,11 +1,10 @@
 import { OnStart } from "@flamework/core";
 import { Component, BaseComponent } from "@flamework/components";
-import { ClickState, InputState } from "shared/types/InputState";
-import { Bindle } from "shared/Decorators/BindleDecorators";
-import { Events } from "client/network";
-import { ContextActionService, TweenService, UserInputService } from "@rbxts/services";
-import { ReplicaController } from "@rbxts/replicaservice";
+import { TweenService, UserInputService } from "@rbxts/services";
+import { OnReplicaCreated } from "shared/Decorators/ReplicaDecorators";
+import { PLayerStateData, PlayerDataReplica } from "types/Replica";
 import { SessionStatus } from "shared/types/SessionStatus";
+import { Events } from "client/network";
 
 @Component({})
 export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eyes"]> implements OnStart {
@@ -30,21 +29,18 @@ export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eye
         return this.instance;
     }
 
-    public Init() {
-        ReplicaController.ReplicaOfClassCreated("PlayerState", (repica) => {
-            repica.ListenToChange("SessionStatus", (newValue) => {
-                if (newValue === SessionStatus.Menu || repica.Data.Night > 1) {
-                    this.canClose = false;
-                    this.instance.down.Position = UDim2.fromScale(0, 0.467);
-                    this.instance.up.Position = UDim2.fromScale(0, -0.501);
-                } else if (newValue === SessionStatus.Playing) {
-                    this.canClose = true;
-                }
-            });
+    @OnReplicaCreated()
+    public Init(replica: PlayerDataReplica) {
+        replica.ListenToChange("Static.SessionStatus", (newValue) => {
+            if (newValue === SessionStatus.Menu || replica.Data.Static.Night > 1) {
+                this.canClose = false;
+                this.instance.down.Position = UDim2.fromScale(0, 0.467);
+                this.instance.up.Position = UDim2.fromScale(0, -0.501);
+            } else if (newValue === SessionStatus.Playing) {
+                this.canClose = true;
+            }
         });
     }
-
-    //@Bindle(Enum.KeyCode.Space, InputState.Began, ClickState.pinch)
     public CloseEyes() {
         if (this.closeEyesThread) task.cancel(this.closeEyesThread);
         this.closeEyesThread = task.spawn(() => {
@@ -64,7 +60,6 @@ export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eye
         });
     }
 
-    //@Bindle(Enum.KeyCode.Space, InputState.Ended, ClickState.pinch)
     public OpenEyes() {
         if (this.closeEyesThread) task.cancel(this.closeEyesThread);
         this.closeEyesThread = task.spawn(() => {
@@ -79,7 +74,6 @@ export class EyeComponents extends BaseComponent<{}, PlayerGui["PlayerGui"]["Eye
                 if (!res) {
                     break;
                 }
-                print(2);
             }
         });
     }

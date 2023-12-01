@@ -21,6 +21,6 @@ export class PlayerService implements OnStart {
 
     private PlayerInit(player: Player) {
         const playerComponent = this.components.addComponent<PlayerComponent>(player);
-        Events.GameInited.fire(player, this.nightService.GetNight(player));
+        Events.GameInited.fire(player, playerComponent.PlayerStateReplica!.Data.Static.Night);
     }
 }

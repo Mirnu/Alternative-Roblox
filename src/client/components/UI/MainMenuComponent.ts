@@ -1,9 +1,10 @@
-import { OnInit, OnStart } from "@flamework/core";
+import { OnStart } from "@flamework/core";
 import { Component, BaseComponent } from "@flamework/components";
 import { TweenService } from "@rbxts/services";
-import { Events, Functions } from "client/network";
+import { Events } from "client/network";
 import Signal from "@rbxts/signal";
-import { Replica, ReplicaController } from "@rbxts/replicaservice";
+import { OnReplicaCreated } from "shared/Decorators/ReplicaDecorators";
+import { PlayerDataReplica } from "types/Replica";
 import { SessionStatus } from "shared/types/SessionStatus";
 
 interface Attributes {}
@@ -41,14 +42,9 @@ export class MainMenuComponent extends BaseComponent<Attributes, PlayerGui["Main
         });
     }
 
-    public Init() {
-        ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
-            this.InitHandlerSessionStatus(replica);
-        });
-    }
-
-    private InitHandlerSessionStatus(replica: Replica<"PlayerState">) {
-        replica.ListenToChange(["SessionStatus"], (newValue) => {
+    @OnReplicaCreated()
+    private InitHandlerSessionStatus(replica: PlayerDataReplica) {
+        replica.ListenToChange("Static.SessionStatus", (newValue) => {
             if (newValue === SessionStatus.Playing) {
                 this.instance.Enabled = false;
             } else if (newValue === SessionStatus.Menu) {

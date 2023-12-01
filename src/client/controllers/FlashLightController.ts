@@ -1,8 +1,9 @@
-import { Controller, OnStart, OnInit, OnRender } from "@flamework/core";
-import { ReplicaController } from "@rbxts/replicaservice";
+import { Controller, OnStart, OnRender } from "@flamework/core";
 import { Players, UserInputService, Workspace } from "@rbxts/services";
 import { Events } from "client/network";
+import { OnReplicaCreated } from "shared/Decorators/ReplicaDecorators";
 import { SessionStatus } from "shared/types/SessionStatus";
+import { PlayerDataReplica } from "types/Replica";
 
 @Controller({})
 export class FlashLightController implements OnStart, OnRender {
@@ -41,23 +42,22 @@ export class FlashLightController implements OnStart, OnRender {
         return { part, spotLight };
     }
 
-    public Init() {
-        ReplicaController.ReplicaOfClassCreated("PlayerState", (replica) => {
-            replica.ListenToChange("SessionStatus", (newValue) => {
-                if (newValue === SessionStatus.Playing) {
-                    if (replica.Data.Night === 2) {
-                        this.isCan = true;
-                    }
-                } else if (newValue === SessionStatus.Menu) {
-                    this.isCan = false;
+    @OnReplicaCreated()
+    public Init(replica: PlayerDataReplica) {
+        replica.ListenToChange("Static.SessionStatus", (newValue) => {
+            if (newValue === SessionStatus.Playing) {
+                if (replica.Data.Static.Night === 2) {
+                    this.isCan = true;
                 }
-            });
+            } else if (newValue === SessionStatus.Menu) this.isCan = false;
         });
-        ReplicaController.ReplicaOfClassCreated("GameState", (replica) => {
-            replica.ListenToChange("FlashLight", (newValue) => {
-                this.spotLight!.Angle = newValue * 0.9;
-                this.spotLight!.Brightness = newValue * 0.05;
-            });
+    }
+
+    @OnReplicaCreated()
+    private initFlashLight(replica: PlayerDataReplica) {
+        replica.ListenToChange("Dynamic.FlashLight", (newValue) => {
+            this.spotLight!.Angle = newValue * 0.9;
+            this.spotLight!.Brightness = newValue * 0.05;
         });
     }
 

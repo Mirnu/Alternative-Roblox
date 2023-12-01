@@ -14,10 +14,7 @@ export class FlashLight implements IFigthing {
         this.flashLightThread = task.spawn(() => {
             // eslint-disable-next-line roblox-ts/lua-truthiness
             while (task.wait(0.1)) {
-                playerComponent.GameStateReplica?.SetValue(
-                    "FlashLight",
-                    math.max(playerComponent.GameStateReplica?.Data.FlashLight - 0.05, 0),
-                );
+                playerComponent.SetFlashLight(playerComponent.PlayerStateReplica!.Data.Dynamic.FlashLight - 0.05);
             }
         });
     }

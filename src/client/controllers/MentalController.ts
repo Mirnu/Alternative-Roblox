@@ -1,7 +1,8 @@
 import { Controller, OnStart, OnInit } from "@flamework/core";
-import { ReplicaController } from "@rbxts/replicaservice";
 import { Lighting, TweenService } from "@rbxts/services";
 import { EyeComponents } from "client/components/UI/EyeComponents";
+import { OnReplicaCreated } from "shared/Decorators/ReplicaDecorators";
+import { PlayerDataReplica } from "types/Replica";
 
 @Controller({})
 export class MentalController implements OnStart {
@@ -12,19 +13,17 @@ export class MentalController implements OnStart {
 
     private StartCurrentActions(goalColor: Color3) {
         if (this.currentTween) this.currentTween.Cancel();
-
         this.currentTween = TweenService.Create(this.ColorCorrection, new TweenInfo(0.1), { TintColor: goalColor });
         this.currentTween.Play();
     }
 
-    public MentalChanged() {
-        ReplicaController.ReplicaOfClassCreated("GameState", (replica) => {
-            replica.ListenToChange("Mental", (mental) => {
-                const goalColor = new Color3(this.ColorCorrection.TintColor.R, mental / 100, mental / 100);
+    @OnReplicaCreated()
+    private initReplica(replica: PlayerDataReplica) {
+        replica.ListenToChange("Dynamic.Mental", (newMental) => {
+            const goalColor = new Color3(this.ColorCorrection.TintColor.R, newMental / 100, newMental / 100);
 
-                EyeComponents.GetInstance()?.SetColor(1 - mental / 100);
-                this.StartCurrentActions(goalColor);
-            });
+            EyeComponents.GetInstance()?.SetColor(1 - newMental / 100);
+            this.StartCurrentActions(goalColor);
         });
     }
 }

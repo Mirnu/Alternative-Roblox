@@ -1,6 +1,5 @@
 import { Components } from "@flamework/components";
-import { Controller, OnStart, OnInit, Dependency } from "@flamework/core";
-import { ReplicaController } from "@rbxts/replicaservice";
+import { Controller, OnStart } from "@flamework/core";
 import { Players } from "@rbxts/services";
 import { LocalPlayer } from "client/LocalPlayer";
 import { EyeComponents } from "client/components/UI/EyeComponents";
